@@ -308,3 +308,11 @@ DAVE is open-source and released under the [Apache-2.0](./LICENSE) License.
 
 Check out our demonstration video:  
 [![Watch the Demo](https://img.shields.io/badge/Watch-Demo-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?v=XG7RsI3t-2Q)
+
+
+## **Cite this Work**
+
+Agazzi, R., Alva Principe, R., Pozzi, R., Ripamonti, M., & Palmonari, M. (2025).
+DAVE: A Framework for Assisted Analysis of Document Collections in Knowledge-Intensive Domains.
+In Proceedings of the Thirty-Fourth International Joint Conference on Artificial Intelligence (IJCAI-25), Demo Track.
+https://doi.org/10.24963/ijcai.2025/1246
