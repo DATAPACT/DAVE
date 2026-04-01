@@ -60,7 +60,7 @@ export const isRequestFromIframe = (req: { headers: Record<string, string | stri
   if (dest === 'iframe') return true;
 
   // Fallback: if a parent origin is configured, check the Referer
-  const parentOrigin = process.env.NEXT_PUBLIC_TOOLBOX_ORIGIN;
+  const parentOrigin = process.env.NEXT_PUBLIC_FRAME_ANCESTORS;
   if (parentOrigin) {
     const referer = req.headers['referer'] || req.headers['referrer'];
     if (typeof referer === 'string' && referer.startsWith(parentOrigin)) return true;

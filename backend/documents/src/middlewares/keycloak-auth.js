@@ -4,48 +4,24 @@ import jwksClient from "jwks-rsa";
 
 const KEYCLOAK_ISSUER =
   process.env.KEYCLOAK_ISSUER || "http://keycloak:8080/realms/dave";
-const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_ID || "dave-client";
-
-// Allowlist of trusted token issuers.
-// KEYCLOAK_ISSUER is always trusted. Additional issuers (e.g. for iframe SSO from
-// external realms) can be added via KEYCLOAK_EXTRA_ISSUERS as a comma-separated list.
-const TRUSTED_ISSUERS = new Set(
-  [
-    KEYCLOAK_ISSUER,
-    ...(process.env.KEYCLOAK_EXTRA_ISSUERS || "")
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean),
-  ]
-);
+const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID || "dave-client";
 
 console.log(
   `🔐 Keycloak auth configured: issuer=${KEYCLOAK_ISSUER}, clientId=${KEYCLOAK_CLIENT_ID}`,
 );
-console.log(`🔐 Trusted issuers: ${[...TRUSTED_ISSUERS].join(", ")}`);
 
-// Cache of JWKS clients keyed by issuer URL
-const jwksClients = new Map();
-
-function getClientForIssuer(issuer) {
-  if (!jwksClients.has(issuer)) {
-    jwksClients.set(
-      issuer,
-      jwksClient({
-        jwksUri: `${issuer}/protocol/openid-connect/certs`,
-        cache: true,
-        cacheMaxAge: 3600000, // 1 hour
-        rateLimit: true,
-        jwksRequestsPerMinute: 60,
-      }),
-    );
-  }
-  return jwksClients.get(issuer);
-}
+// JWKS client for KEYCLOAK_ISSUER
+const jwksClientInstance = jwksClient({
+  jwksUri: `${KEYCLOAK_ISSUER}/protocol/openid-connect/certs`,
+  cache: true,
+  cacheMaxAge: 3600000, // 1 hour
+  rateLimit: true,
+  jwksRequestsPerMinute: 60,
+});
 
 /**
- * Get signing key from the issuer embedded in the token header.
- * Rejects tokens from issuers not in TRUSTED_ISSUERS.
+ * Get signing key from KEYCLOAK_ISSUER.
+ * Rejects tokens whose iss claim does not match KEYCLOAK_ISSUER.
  */
 function getKeyForToken(token) {
   return (header, callback) => {
@@ -56,11 +32,10 @@ function getKeyForToken(token) {
         Buffer.from(parts[1].replace(/-/g, "+").replace(/_/g, "/"), "base64").toString(),
       );
       if (!payload.iss) return callback(new Error("Missing iss claim"));
-      if (!TRUSTED_ISSUERS.has(payload.iss)) {
+      if (payload.iss !== KEYCLOAK_ISSUER) {
         return callback(new Error(`Untrusted token issuer: ${payload.iss}`));
       }
-      const issuerClient = getClientForIssuer(payload.iss);
-      issuerClient.getSigningKey(header.kid, (err, key) => {
+      jwksClientInstance.getSigningKey(header.kid, (err, key) => {
         if (err) {
           console.error("❌ Error getting signing key:", err.message);
           return callback(err);

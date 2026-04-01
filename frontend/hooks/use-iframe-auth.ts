@@ -2,11 +2,11 @@ import { useEffect, useRef } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { isInIframe } from '@/utils/auth';
 
-const PARENT_ORIGIN = process.env.NEXT_PUBLIC_TOOLBOX_ORIGIN;
+const PARENT_ORIGIN = process.env.NEXT_PUBLIC_FRAME_ANCESTORS;
 
 if (typeof window !== 'undefined' && !PARENT_ORIGIN) {
   console.warn(
-    '[IframeAuth] NEXT_PUBLIC_TOOLBOX_ORIGIN is not set. ' +
+    '[IframeAuth] NEXT_PUBLIC_FRAME_ANCESTORS is not set. ' +
     'postMessage will target any origin ("*") and SSO_TOKEN messages will be accepted from any origin. ' +
     'Set this variable in production to restrict communication to the trusted parent app.'
   );
